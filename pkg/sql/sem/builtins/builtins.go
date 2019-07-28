@@ -58,6 +58,8 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/util/uuid"
 	"github.com/knz/strtime"
 	"github.com/pkg/errors"
+	"github.com/cockroachdb/cockroach/pkg/aprismatic/cryptosystem/elgamal"
+	"github.com/cockroachdb/cockroach/pkg/aprismatic/cryptosystem/paillier"
 )
 
 var (
@@ -158,11 +160,66 @@ func newEncodeError(c rune, enc string) error {
 // builtins contains the built-in functions indexed by name.
 //
 // For use in other packages, see AllBuiltinNames and GetBuiltinProperties().
+
+/*
+	the entry point for adding new SQL functions is located in the variable builtins,
+	whiich is a map of key: string and valueL builtinDefinition
+		- the key represents the SQL function name
+		- the value is a struct that is required by CockroachDB and consists of 2 values
+			- props: a variable of type "Tree.FunctionProperties" and is assumed to be some sort of descriptive property of the function?
+			   - several are seen so far, e.g. assigning a category or whether it accepts null arguments or using defProp to create a default empty 
+			- overload: a slice of type "tree.Overload" .  it represents a struct of different overload types for different data types
+			  pertaining to the SQL function
+
+	
+	many functions uses the makeBuiltin functions, which returns a struct of BuiltInDefinitions to the map "builtins";
+	it acceptsa tree.FunctionProperties and tree.Overload argument
+
+	many functions uses various stringOverload1, stringOverload2 etc; these functions are helper functions
+	that return a tree.overload struct that is required by the makeBuiltin
+
+	the base tree.overload struct has several members; only the important are listed:
+		- types as TypeList; typelist exists in overload.go and types in types.go
+		- returnType as ReturnTyper; ReturnTyper exist in overload.go and types in types.go
+		- info as String
+		- various function types as callables
+			- you will need to specify data types in term of datums(singular of data); 
+			  datum.go has a list of data types
+
+	any function assigned must accept *tree.EvalContext and tree.Datum
+
+
+*/
 var builtins = map[string]builtinDefinition{
 	// TODO(XisiHuang): support encoding, i.e., length(str, encoding).
 	"length":           lengthImpls,
 	"char_length":      lengthImpls,
 	"character_length": lengthImpls,
+
+	//looking to emulate a math function for the cryptofunction
+	"simple_add": makeBuiltin(defProps(),
+		tree.Overload{
+			Types: tree.ArgTypes{ {"int", types.INT},{"int", types.INT} },
+			ReturnType: tree.FixedReturnType(types.INT),
+			Fn: func(evalCtx *tree.EvalContext, args tree.Datums) (tree.Datum, error) {
+				sum := tree.MustBeDInt(args[0]) + tree.MustBeDint(args[1])
+				return tree.NewDInt(sum), nil
+			},	
+		},
+	),
+
+	"paillier_add": makeBuiltin(defProps(),
+		cryptoOverload(pallier.Add)
+	)
+	"paillier_subtract": makeBuiltin(defProps(),
+		cryptoOverload(pallier.Subtract)
+	)
+	"elgamal_multiply": makeBuiltin(defProps(),
+		cryptoOverload(elgamal.Subtract)
+	)
+	"elgamal_divide": makeBuiltin(defProps(),
+		cryptoOverload(elgamal.Subtract)
+	)
 
 	"bit_length": makeBuiltin(tree.FunctionProperties{Category: categoryString},
 		stringOverload1(func(_ *tree.EvalContext, s string) (tree.Datum, error) {
@@ -4609,4 +4666,28 @@ func recentTimestamp(ctx *tree.EvalContext) (time.Time, error) {
 		return time.Time{}, err
 	}
 	return ctx.StmtTimestamp.Add(offset), nil
+}
+
+func cryptoOverload(
+	f func(first []bytes, second []bytes, mod []bytes) (result []bytes), 
+	info string,
+) tree.Overload {
+	return tree.Overload{
+		Types:      tree.ArgTypes{{"byte", types.Bytes}, {"byte", types.Bytes}},
+		ReturnType: tree.FixedReturnType(types.Bytes),
+		Fn: func(evalCtx *tree.EvalContext, args tree.Datums) (tree.Datum, error) {
+
+			byte_first := []byte(tree.MustBeDBytes(args[0]))
+			byte_second := []byte(tree.MustBeDBytes(args[0]))
+			byte_mod := []byte(tree.MustBeDBytes(args[0]))
+
+			if len(bytes_first) != len(bytes_second) || len(bytes_first) % 2 != 0 {
+				return nil, pgerror.NewError(pgerror.CodeInvalidParameterValueError, "first 2 arguments msut be of equal length, divisible by 2" )
+			} 
+			res := f(byte_first, byte_second, byte_mod)
+
+			return tree.NewDBytes(tree.DBytes(res)), nil
+		},
+		Info: info,
+	}
 }

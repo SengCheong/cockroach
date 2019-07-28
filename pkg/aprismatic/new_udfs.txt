@@ -1,0 +1,47 @@
+
+	For Aprisma Developers working on CockroachDB:
+
+	Ensure that you are running on a linux/mac system before running build/builder.sh
+	The shell script was specifically configured for these OSes only
+
+	Ensure that you are working on a release branch in order to extend the functions
+
+	I denote types as "type_name" and variables as |var_name|
+
+	the entry point for adding new SQL functions is located in the variable |builtins|,
+	which is a map of key: "string" and value: "builtinDefinition"
+		- the key represents the SQL function name hence its type is "string"
+		- the value is a struct type that is named as "builtinDefinition"
+
+	"builtinDefinition" is a struct type that consists of 2 values:
+		- |props|: a variable of type "Tree.FunctionProperties" and is assumed to be some sort of descriptive property of the function?
+		   - several are seen so far, e.g. assigning a category or whether it accepts null arguments
+		   - some SQL functions use defProp() to create a default empty "Tree.FunctionProperties" 
+		- |overload|: a slice of type "tree.Overload" .  it represents a struct of different overload types for different data types
+		  pertaining to the SQL function
+
+	
+	many functions uses the makeBuiltin() functions, which returns a struct of "BuiltInDefinitions" to the map |builtins|;
+	it accepts a "tree.FunctionProperties" and "tree.Overload" argument
+
+	many functions uses various stringOverload1(), stringOverload2() etc; these functions are helper functions
+	that return a "tree.Overload" struct that is required by the makeBuiltin(), but the struct has default values such as "string"
+
+	the base "tree.Overload" struct has several members and is located in overload.go ; only the important are listed:
+		- types as "TypeList": "TypeList" exists in overload.go and the list of types in types.go; this field represents the list of arguments to the SQL function and is typically specified as 
+		  a struct list of type "ArgTypes"
+		  	- struct list ArgTypes contains 2 fields as an anonymous struct and is located in overload.go:
+		  		- name as "String", and is used to present a human readable string
+		  		- typ as "Types.T", the actual type of the argument
+		  	- "TypeList" is an interface type and not an actual list or array; 
+		- returnType as "ReturnTyper": "ReturnTyper" exist in overload.go and types in types.go; this field represents the return type
+		- info as "String"
+		- various function types as callables
+			- you will need to specify data types in term of datums(singular noun of data); 
+			  datum.go has a list of data types
+
+	any function assigned so far always accepts *tree.EvalContext and tree.Datums
+		- currently unknown what is *tree.EvalConttext; it is assumed that it is required
+		- tree.Datums is located in Datum.go and represents a slice of the values provided as arguments to the SQL functions
+
+
