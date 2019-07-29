@@ -45,5 +45,7 @@
 		- tree.Datums is located in Datum.go and represents a slice of the values provided as arguments to the SQL functions
 
 	currently, the pailler and elgamal functions return in the octet escape format; further work may be done to revise it into hexadecimal format
+	the sql test suite must convert the output using the encode() function to hex in order to obtain a hex string
+	 as the text file for logic tests is not conducive for control characters
 
 

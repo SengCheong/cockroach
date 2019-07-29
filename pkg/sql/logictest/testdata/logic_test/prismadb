@@ -1,19 +1,19 @@
 query T
-select paillier_add(b'\x01\x02', b'\x03\x04', b'\x0a')
+select encode(paillier_add(b'\x01\x02', b'\x03\x04', b'\x0a'),'hex')
 ----
-\003\008
+0308
 
 query T
-select paillier_subtract(b'\x01\x02', b'\x03\x04', b'\x0a')
+select encode(paillier_subtract(b'\x01\x02', b'\x03\x04', b'\x0a'),'hex')
 ----
-\004\006
+0406
 
 query T
-select elgamal_multiply(b'\x01\x02\x03\x04', b'\x05\x06\x07\x08', b'\x0a') 
+select encode(elgamal_multiply(b'\x01\x02\x03\x04', b'\x05\x06\x07\x08', b'\x0a'),'hex')
 ----
-\005\002\001\002
+05020102
 
 query T
-select elgamal_divide(b'\x01\x02\x03\x04', b'\x05\x06\x07\x08', b'\x0a')
+select encode(elgamal_divide(b'\x01\x02\x03\x04', b'\x05\x06\x07\x08', b'\x0a'),'hex')
 ----
-\007\006\005\004
+07060504

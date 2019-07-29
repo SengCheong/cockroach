@@ -4686,11 +4686,6 @@ func cryptoOverload(
 			} 
 			res := f(byte_first, byte_second, byte_mod)
 
-			log.Info(evalCtx.Ctx(), "byte_first: " + format_byte_array(byte_first))
-			log.Info(evalCtx.Ctx(), "byte_second: " + format_byte_array(byte_second))
-			log.Info(evalCtx.Ctx(), "byte_mod: " + format_byte_array(byte_mod))
-			log.Info(evalCtx.Ctx(), "res: " + format_byte_array(res))
-
 			return tree.NewDBytes(tree.DBytes(res)), nil
 		},
 		Info: info,
