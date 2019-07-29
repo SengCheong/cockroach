@@ -44,4 +44,6 @@
 		- currently unknown what is *tree.EvalConttext; it is assumed that it is required
 		- tree.Datums is located in Datum.go and represents a slice of the values provided as arguments to the SQL functions
 
+	currently, the pailler and elgamal functions return in the octet escape format; further work may be done to revise it into hexadecimal format
+
 

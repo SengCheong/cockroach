@@ -611,6 +611,7 @@ has no relationship with the commit order of concurrent transactions.</p>
 </span></td></tr>
 <tr><td><code>sign(val: <a href="int.html">int</a>) &rarr; <a href="int.html">int</a></code></td><td><span class="funcdesc"><p>Determines the sign of <code>val</code>: <strong>1</strong> for positive; <strong>0</strong> for 0 values; <strong>-1</strong> for negative.</p>
 </span></td></tr>
+<tr><td><code>simple_add(int: <a href="int.html">int</a>, int: <a href="int.html">int</a>) &rarr; <a href="int.html">int</a></code></td><td></td></tr>
 <tr><td><code>sin(val: <a href="float.html">float</a>) &rarr; <a href="float.html">float</a></code></td><td><span class="funcdesc"><p>Calculates the sine of <code>val</code>.</p>
 </span></td></tr>
 <tr><td><code>sqrt(val: <a href="decimal.html">decimal</a>) &rarr; <a href="decimal.html">decimal</a></code></td><td><span class="funcdesc"><p>Calculates the square root of <code>val</code>.</p>
@@ -728,6 +729,10 @@ has no relationship with the commit order of concurrent transactions.</p>
 </span></td></tr>
 <tr><td><code>decode(text: <a href="string.html">string</a>, format: <a href="string.html">string</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Decodes <code>data</code> using <code>format</code> (<code>hex</code> / <code>escape</code> / <code>base64</code>).</p>
 </span></td></tr>
+<tr><td><code>elgamal_divide(byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Elgamal Division</p>
+</span></td></tr>
+<tr><td><code>elgamal_multiply(byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Elgamal Multiplication</p>
+</span></td></tr>
 <tr><td><code>encode(data: <a href="bytes.html">bytes</a>, format: <a href="string.html">string</a>) &rarr; <a href="string.html">string</a></code></td><td><span class="funcdesc"><p>Encodes <code>data</code> using <code>format</code> (<code>hex</code> / <code>escape</code> / <code>base64</code>).</p>
 </span></td></tr>
 <tr><td><code>from_ip(val: <a href="bytes.html">bytes</a>) &rarr; <a href="string.html">string</a></code></td><td><span class="funcdesc"><p>Converts the byte string representation of an IP to its character string representation.</p>
@@ -767,6 +772,10 @@ has no relationship with the commit order of concurrent transactions.</p>
 <p>For example, <code>overlay('doggie', 'CAT', 2)</code> returns <code>dCATie</code>.</p>
 </span></td></tr>
 <tr><td><code>overlay(input: <a href="string.html">string</a>, overlay_val: <a href="string.html">string</a>, start_pos: <a href="int.html">int</a>, end_pos: <a href="int.html">int</a>) &rarr; <a href="string.html">string</a></code></td><td><span class="funcdesc"><p>Deletes the characters in <code>input</code> between <code>start_pos</code> and <code>end_pos</code> (count starts at 1), and then insert <code>overlay_val</code> at <code>start_pos</code>.</p>
+</span></td></tr>
+<tr><td><code>paillier_add(byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Paillier Addition</p>
+</span></td></tr>
+<tr><td><code>paillier_subtract(byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>, byte: <a href="bytes.html">bytes</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Paillier Subtraction</p>
 </span></td></tr>
 <tr><td><code>quote_ident(val: <a href="string.html">string</a>) &rarr; <a href="string.html">string</a></code></td><td><span class="funcdesc"><p>Return <code>val</code> suitably quoted to serve as identifier in a SQL statement.</p>
 </span></td></tr>

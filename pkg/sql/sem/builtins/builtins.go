@@ -199,27 +199,27 @@ var builtins = map[string]builtinDefinition{
 	//looking to emulate a math function for the cryptofunction
 	"simple_add": makeBuiltin(defProps(),
 		tree.Overload{
-			Types: tree.ArgTypes{ {"int", types.INT},{"int", types.INT} },
-			ReturnType: tree.FixedReturnType(types.INT),
+			Types: tree.ArgTypes{ {"int", types.Int},{"int", types.Int} },
+			ReturnType: tree.FixedReturnType(types.Int),
 			Fn: func(evalCtx *tree.EvalContext, args tree.Datums) (tree.Datum, error) {
-				sum := tree.MustBeDInt(args[0]) + tree.MustBeDint(args[1])
+				sum := tree.MustBeDInt(args[0]) + tree.MustBeDInt(args[1])
 				return tree.NewDInt(sum), nil
 			},	
 		},
 	),
 
 	"paillier_add": makeBuiltin(defProps(),
-		cryptoOverload(pallier.Add)
-	)
+		cryptoOverload(paillier.Add, "Paillier Addition"),
+	),
 	"paillier_subtract": makeBuiltin(defProps(),
-		cryptoOverload(pallier.Subtract)
-	)
+		cryptoOverload(paillier.Subtract, "Paillier Subtraction"),
+	),
 	"elgamal_multiply": makeBuiltin(defProps(),
-		cryptoOverload(elgamal.Subtract)
-	)
+		cryptoOverload(elgamal.Multiply, "Elgamal Multiplication"),
+	),
 	"elgamal_divide": makeBuiltin(defProps(),
-		cryptoOverload(elgamal.Subtract)
-	)
+		cryptoOverload(elgamal.Divide, "Elgamal Division"),
+	),
 
 	"bit_length": makeBuiltin(tree.FunctionProperties{Category: categoryString},
 		stringOverload1(func(_ *tree.EvalContext, s string) (tree.Datum, error) {
@@ -4669,25 +4669,38 @@ func recentTimestamp(ctx *tree.EvalContext) (time.Time, error) {
 }
 
 func cryptoOverload(
-	f func(first []bytes, second []bytes, mod []bytes) (result []bytes), 
+	f func(first []byte, second []byte, mod []byte) (result []byte), 
 	info string,
 ) tree.Overload {
 	return tree.Overload{
-		Types:      tree.ArgTypes{{"byte", types.Bytes}, {"byte", types.Bytes}},
+		Types:      tree.ArgTypes{{"byte", types.Bytes}, {"byte", types.Bytes}, {"byte", types.Bytes}},
 		ReturnType: tree.FixedReturnType(types.Bytes),
 		Fn: func(evalCtx *tree.EvalContext, args tree.Datums) (tree.Datum, error) {
 
 			byte_first := []byte(tree.MustBeDBytes(args[0]))
-			byte_second := []byte(tree.MustBeDBytes(args[0]))
-			byte_mod := []byte(tree.MustBeDBytes(args[0]))
+			byte_second := []byte(tree.MustBeDBytes(args[1]))
+			byte_mod := []byte(tree.MustBeDBytes(args[2]))
 
-			if len(bytes_first) != len(bytes_second) || len(bytes_first) % 2 != 0 {
-				return nil, pgerror.NewError(pgerror.CodeInvalidParameterValueError, "first 2 arguments msut be of equal length, divisible by 2" )
+			if len(byte_first) != len(byte_second) || len(byte_first) % 2 != 0 {
+				return nil, pgerror.NewError(pgerror.CodeInvalidParameterValueError, "first 2 arguments must be of equal length, divisible by 2" )
 			} 
 			res := f(byte_first, byte_second, byte_mod)
+
+			log.Info(evalCtx.Ctx(), "byte_first: " + format_byte_array(byte_first))
+			log.Info(evalCtx.Ctx(), "byte_second: " + format_byte_array(byte_second))
+			log.Info(evalCtx.Ctx(), "byte_mod: " + format_byte_array(byte_mod))
+			log.Info(evalCtx.Ctx(), "res: " + format_byte_array(res))
 
 			return tree.NewDBytes(tree.DBytes(res)), nil
 		},
 		Info: info,
 	}
+}
+
+func format_byte_array(arr []byte) string {
+	s := ""
+	for _,value := range arr {
+		s = s + strconv.Itoa(int(value)) + " "
+	}
+	return s
 }
