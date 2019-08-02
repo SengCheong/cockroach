@@ -549,6 +549,8 @@ func (b *Builder) constructAggregate(name string, args []opt.ScalarExpr) opt.Sca
 		return b.factory.ConstructJsonAgg(args[0])
 	case "jsonb_agg":
 		return b.factory.ConstructJsonbAgg(args[0])
+	case "paillier_sum":
+		return b.factory.ConstructPaillierSum(args[0],  args[1])
 	case "string_agg":
 		if !memo.CanExtractConstDatum(args[1]) {
 			panic(builderError{

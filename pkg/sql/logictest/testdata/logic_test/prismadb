@@ -1,3 +1,5 @@
+subtest base
+
 query T
 select encode(paillier_add(b'\x01\x02', b'\x03\x04', b'\x0a'),'hex')
 ----
@@ -17,3 +19,25 @@ query T
 select encode(elgamal_divide(b'\x01\x02\x03\x04', b'\x05\x06\x07\x08', b'\x0a'),'hex')
 ----
 07060504
+
+subtest aggregate
+
+statement ok
+CREATE TABLE agg_test (
+  id INT,
+  val BYTES
+)
+
+statement ok
+INSERT INTO agg_test VALUES (1,b'\x01\x02\'),(2,b'\x03\x04'), (3, b'\x05\x06'), (4, b'\x07\x08')
+
+query T
+select encode(paillier_sum(val,b'\x10') from agg_test
+----
+0900
+
+query T
+select encode(paillier_sum(val,b'\x10') from agg_test where id in (1,2)
+----
+0308
+

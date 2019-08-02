@@ -48,4 +48,30 @@
 	the sql test suite must convert the output using the encode() function to hex in order to obtain a hex string
 	 as the text file for logic tests is not conducive for control characters
 
+	for aggregate functions, a similiar scheme is used; the entry point for adding a new SQL aggregate function 
+	is located in the variable |aggregates| aggregate_builtins.go that follows the structure of |builtins| in builtins.go
+
+	an SQL aggregate function's "builtInDefiniton" can use the makeBuiltin() function has the following definition, but with restrictions
+	  	- |props| : uses either aggProps() or aggPropsNullableArgs() only
+	  	- |overload| : use makeAggOverload() for simplicity, but there is makeAggOverloadWithReturnType(); makeAggOverload() calls makeAggOverloadWithReturnType(), which determines and returns a "tree.Overload" struct with configured values for sql aggregation function 
+
+	to define an aggregate function, several steps must be performed in aggregate_builtins.go
+		- define a struct type "myAggStruct", with any properties required for your aggregate computation; typically it contains the following
+			- a "bool" flag for ensuring that a null value is returned if there are no non-null values in the aggregate(based on analysis of seenNonNull/sawNonNull)
+			- a variable to hold a partial sum
+			- for certain function, there is a memory constraint to be maintained and monitored, hence it may be allocated with a "mon.BoundAccount" for automatic memory monitoring using makeBoundAccount(), located in pkg/utils/mon/bytes_usage.go
+
+		- declare a variable reference to "myAggStruct", with the variable type as the "tree.AggregateFunc" interface type, located in aggregate_funcs.go
+		- declare a constant of the size of the AggregateStruct
+		- declare a function that is responsible for making the struct; it takes the following arugments
+			(params []types.T, evalCtx *tree.EvalContext, arguments tree.Datums) 
+			and should be invoked by makeAggOverload(), which will configure the sqls
+			- note that this function represents the point in which the SQL function is invoked, and its 
+			  accumulation operations are prepared, but not executed on supplied rows; hence if a fixed argument needs to be received from the SQL input, receive it here
+		- define pointer receiver functions on the struct, it must implement the methods declared in the "tree.AggregateFunc" interface type
+		- add the function name to the ConstructAggregate() function in groupby.go
+		- add the function name to the AggregateOpReverseMap map and the set of functions Aggregate___(op operator) in operator.go
+		- add the function name to scalar.opt, using the built-in structure as a reference
+		- add the function name to pkg\sql\distsqlpb\processors.proto, using the built-in functions as a reference for the naming convention
+		- if you need to receive an additional argument, you also need to add modify pkg/sql/opt/exec/execbuilder/relational_builder.go to force extractAggregateConstArgs() to receive the required arguments; as of time of writing(8/2019) the internal documentation only mentions that it supports constants?
 

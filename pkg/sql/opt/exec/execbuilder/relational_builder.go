@@ -862,6 +862,8 @@ func (b *Builder) extractAggregateConstArgs(agg opt.ScalarExpr) tree.Datums {
 	switch agg.Op() {
 	case opt.StringAggOp:
 		return tree.Datums{memo.ExtractConstDatum(agg.Child(1))}
+	case opt.PaillierSumOp:
+		return tree.Datums{memo.ExtractConstDatum(agg.Child(1))}
 	default:
 		return nil
 	}

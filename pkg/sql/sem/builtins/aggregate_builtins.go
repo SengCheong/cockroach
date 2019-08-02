@@ -29,6 +29,10 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/util/duration"
 	"github.com/cockroachdb/cockroach/pkg/util/json"
 	"github.com/cockroachdb/cockroach/pkg/util/mon"
+
+	//"strconv"
+	//"github.com/cockroachdb/cockroach/pkg/util/log"
+	"github.com/cockroachdb/cockroach/pkg/aprismatic/cryptosystem/paillier"
 )
 
 func initAggregateBuiltins() {
@@ -103,6 +107,12 @@ func aggPropsNullableArgs() tree.FunctionProperties {
 // These functions are also identified with Class == tree.AggregateClass.
 // The properties are reachable via tree.FunctionDefinition.
 var aggregates = map[string]builtinDefinition{
+
+	"paillier_sum": makeBuiltin(aggPropsNullableArgs(),
+		makeAggOverload([]types.T{types.Bytes, types.Bytes}, types.Bytes, newPaillierSumAggregate, 
+			"Performs a Paillier Addition of the selected byte values."),
+	),
+
 	"array_agg": setProps(aggPropsNullableArgs(),
 		arrayBuiltin(func(t types.T) tree.Overload {
 			return makeAggOverloadWithReturnType(
@@ -409,6 +419,7 @@ var _ tree.AggregateFunc = &boolOrAggregate{}
 var _ tree.AggregateFunc = &bytesXorAggregate{}
 var _ tree.AggregateFunc = &intXorAggregate{}
 var _ tree.AggregateFunc = &jsonAggregate{}
+var _ tree.AggregateFunc = &paillierSumAggregate{}
 
 const sizeOfArrayAggregate = int64(unsafe.Sizeof(arrayAggregate{}))
 const sizeOfAvgAggregate = int64(unsafe.Sizeof(avgAggregate{}))
@@ -437,6 +448,7 @@ const sizeOfBoolOrAggregate = int64(unsafe.Sizeof(boolOrAggregate{}))
 const sizeOfBytesXorAggregate = int64(unsafe.Sizeof(bytesXorAggregate{}))
 const sizeOfIntXorAggregate = int64(unsafe.Sizeof(intXorAggregate{}))
 const sizeOfJSONAggregate = int64(unsafe.Sizeof(jsonAggregate{}))
+const sizeOfPaillierSumAggregate = int64(unsafe.Sizeof(paillierSumAggregate{}))
 
 // See NewAnyNotNullAggregate.
 type anyNotNullAggregate struct {
@@ -1944,3 +1956,77 @@ func (a *jsonAggregate) Close(ctx context.Context) {
 func (a *jsonAggregate) Size() int64 {
 	return sizeOfJSONAggregate
 }
+
+//the PaillierSumAggregate struct
+type paillierSumAggregate struct {
+	bytes []byte
+	sawNonNull bool
+	acc mon.BoundAccount
+	mod []byte
+}
+
+/*
+this func is able to return a tree.AggregateFunc because pointer receivers corresponding to
+tree.AggregateFunc interface are declared on the paillerSumAggregate struct, making the struct
+a type of tree.AggregateFunc
+*/
+func newPaillierSumAggregate(_ []types.T, evalCtx *tree.EvalContext, args tree.Datums) tree.AggregateFunc { 
+
+	return &paillierSumAggregate{
+		acc: evalCtx.Mon.MakeBoundAccount(),
+		mod: []byte(tree.MustBeDBytes(args[0])),
+	}
+}
+
+func (p *paillierSumAggregate) Add(ctx context.Context, datum tree.Datum, others ...tree.Datum) error {
+
+	if datum == tree.DNull {
+		return nil
+	}
+
+	p.sawNonNull = true
+
+	if len(p.bytes) == 0 {
+		p.bytes = []byte(tree.MustBeDBytes(datum))
+		return nil
+	}
+
+	//first byte, second byte, nsquare
+	res := paillier.Add(p.bytes, []byte(tree.MustBeDBytes(datum)), p.mod) 
+	p.bytes = res
+
+	/*
+	check with calvin first
+	if len(byte_first) != len(byte_second) || len(byte_first) % 2 != 0 {
+		return  pgerror.NewError(pgerror.CodeInvalidParameterValueError, "all rows must be of equal length, divisible by 2" )
+	} 
+	*/
+
+	
+	/* Unsure of how the memory monitor works, I leave a possible sample here
+	if err := p.acc.Grow(ctx, int64(datum.Size())); err != nil {
+		return err
+	}
+	*/
+
+	return nil
+}
+
+func (p *paillierSumAggregate) Result() (tree.Datum, error) {
+	if !p.sawNonNull {
+		return tree.DNull, nil
+	}
+	return tree.NewDBytes(tree.DBytes(p.bytes)), nil
+}
+
+// Close allows the aggregate to release the memory it requested during
+// operation.
+func (p *paillierSumAggregate) Close(ctx context.Context) { 
+	p.acc.Close(ctx)
+}
+
+// Size is part of the tree.AggregateFunc interface.
+func (p *paillierSumAggregate) Size() int64 {
+	return sizeOfPaillierSumAggregate
+}
+

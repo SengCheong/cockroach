@@ -539,6 +539,7 @@ message AggregatorSpec {
     // JSONB_AGG is an alias for JSON_AGG, they do the same thing.
     JSONB_AGG = 20;
     STRING_AGG = 21;
+    PAILLIER_SUM = 22;
   }
 
   enum Type {

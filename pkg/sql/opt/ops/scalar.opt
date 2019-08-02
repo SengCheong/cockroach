@@ -840,6 +840,15 @@ define StringAgg {
     Sep   ScalarExpr
 }
 
+[Scalar, Aggregate]
+define PaillierSum {
+    Input ScalarExpr
+
+    # NSquare is the Paillier Addition's NSquare variable
+    # Note that it must always be a constant expression.
+    NSquare   ScalarExpr
+}
+
 # ConstAgg is used in the special case when the value of a column is known to be
 # constant within a grouping set; it returns that value. If there are no rows
 # in the grouping set, then ConstAgg returns NULL.

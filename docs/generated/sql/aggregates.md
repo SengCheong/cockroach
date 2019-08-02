@@ -117,6 +117,8 @@
 </span></td></tr>
 <tr><td><code>min(arg1: varbit) &rarr; varbit</code></td><td><span class="funcdesc"><p>Identifies the minimum selected value.</p>
 </span></td></tr>
+<tr><td><code>paillier_sum(arg1: <a href="bytes.html">bytes</a>, arg2: <a href="bytes.html">bytes</a>) &rarr; <a href="bytes.html">bytes</a></code></td><td><span class="funcdesc"><p>Performs a Paillier Addition of the selected byte values.</p>
+</span></td></tr>
 <tr><td><code>sqrdiff(arg1: <a href="decimal.html">decimal</a>) &rarr; <a href="decimal.html">decimal</a></code></td><td><span class="funcdesc"><p>Calculates the sum of squared differences from the mean of the selected values.</p>
 </span></td></tr>
 <tr><td><code>sqrdiff(arg1: <a href="float.html">float</a>) &rarr; <a href="float.html">float</a></code></td><td><span class="funcdesc"><p>Calculates the sum of squared differences from the mean of the selected values.</p>
