@@ -1963,6 +1963,7 @@ type paillierSumAggregate struct {
 	sawNonNull bool
 	acc mon.BoundAccount
 	mod []byte
+	count int
 }
 
 /*
@@ -1978,7 +1979,13 @@ func newPaillierSumAggregate(_ []types.T, evalCtx *tree.EvalContext, args tree.D
 	}
 }
 
-func (p *paillierSumAggregate) Add(ctx context.Context, datum tree.Datum, others ...tree.Datum) error {
+func (p *paillierSumAggregate) Add(ctx context.Context, datum tree.Datum, others ...tree.Datum) (ret error) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			ret = pgerror.NewErrorf(pgerror.CodeDataExceptionError, "Unable to perform paillier sum due to the following error - %s", r)
+		}
+	}()
 
 	if datum == tree.DNull {
 		return nil
@@ -1995,15 +2002,8 @@ func (p *paillierSumAggregate) Add(ctx context.Context, datum tree.Datum, others
 	res := paillier.Add(p.bytes, []byte(tree.MustBeDBytes(datum)), p.mod) 
 	p.bytes = res
 
-	/*
-	check with calvin first
-	if len(byte_first) != len(byte_second) || len(byte_first) % 2 != 0 {
-		return  pgerror.NewError(pgerror.CodeInvalidParameterValueError, "all rows must be of equal length, divisible by 2" )
-	} 
-	*/
-
 	
-	/* Unsure of how the memory monitor works, I leave a possible sample here
+	/* Unsure of how the memory monitor works, I leave a possible sample here. the memory monitor may be required to comply with arbitary length memory content
 	if err := p.acc.Grow(ctx, int64(datum.Size())); err != nil {
 		return err
 	}
@@ -2029,4 +2029,5 @@ func (p *paillierSumAggregate) Close(ctx context.Context) {
 func (p *paillierSumAggregate) Size() int64 {
 	return sizeOfPaillierSumAggregate
 }
+
 

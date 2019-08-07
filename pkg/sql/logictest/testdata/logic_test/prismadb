@@ -29,15 +29,15 @@ CREATE TABLE agg_test (
 )
 
 statement ok
-INSERT INTO agg_test VALUES (1,b'\x01\x02\'),(2,b'\x03\x04'), (3, b'\x05\x06'), (4, b'\x07\x08')
+INSERT INTO agg_test VALUES (1,b'\x01\x02'),(2,b'\x03\x04'), (3, b'\x05\x06'), (4, b'\x07\x08')
 
 query T
-select encode(paillier_sum(val,b'\x10') from agg_test
+select encode(paillier_sum(val,b'\x10'),'hex') from agg_test
 ----
 0900
 
 query T
-select encode(paillier_sum(val,b'\x10') from agg_test where id in (1,2)
+select encode(paillier_sum(val,b'\x10'),'hex') from agg_test where id in (1,2)
 ----
 0308
 
