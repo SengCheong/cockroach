@@ -375,7 +375,13 @@ func (n *groupNode) desiredAggregateOrdering(evalCtx *tree.EvalContext) sqlbase.
 		return nil
 	}
 	f := n.funcs[0]
-	impl := f.create(evalCtx, nil /* arguments */)
+
+	var impl tree.AggregateFunc
+	if len(f.arguments) > 0 {
+		impl = f.create(evalCtx, f.arguments)
+	} else {
+		impl = f.create(evalCtx, nil /* arguments */)
+	}
 	switch impl.(type) {
 	case *builtins.MinAggregate:
 		return sqlbase.ColumnOrdering{{ColIdx: f.argRenderIdx, Direction: encoding.Ascending}}

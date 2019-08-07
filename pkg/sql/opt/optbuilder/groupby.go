@@ -550,6 +550,11 @@ func (b *Builder) constructAggregate(name string, args []opt.ScalarExpr) opt.Sca
 	case "jsonb_agg":
 		return b.factory.ConstructJsonbAgg(args[0])
 	case "paillier_sum":
+		if !memo.CanExtractConstDatum(args[1]) {
+			panic(builderError{
+				fmt.Errorf("unimplemented: aggregate functions with multiple non-constant expressions are not supported"),
+			})
+		}		
 		return b.factory.ConstructPaillierSum(args[0],  args[1])
 	case "string_agg":
 		if !memo.CanExtractConstDatum(args[1]) {

@@ -1961,7 +1961,7 @@ func (a *jsonAggregate) Size() int64 {
 type paillierSumAggregate struct {
 	bytes []byte
 	sawNonNull bool
-	acc mon.BoundAccount
+	//acc mon.BoundAccount
 	mod []byte
 	count int
 }
@@ -1973,8 +1973,13 @@ a type of tree.AggregateFunc
 */
 func newPaillierSumAggregate(_ []types.T, evalCtx *tree.EvalContext, args tree.Datums) tree.AggregateFunc { 
 
+	if len(args) != 1 {
+		panic(fmt.Sprintf("incorrect number of arguments passed, expected 1, got %d", len(args)))
+	}
+
 	return &paillierSumAggregate{
-		acc: evalCtx.Mon.MakeBoundAccount(),
+		//uncomment this line incase memory management is needed
+		//acc: evalCtx.Mon.MakeBoundAccount(),
 		mod: []byte(tree.MustBeDBytes(args[0])),
 	}
 }
@@ -2003,7 +2008,9 @@ func (p *paillierSumAggregate) Add(ctx context.Context, datum tree.Datum, others
 	p.bytes = res
 
 	
-	/* Unsure of how the memory monitor works, I leave a possible sample here. the memory monitor may be required to comply with arbitary length memory content
+	/* 
+	uncomment this line incase memory management is needed	
+	Unsure of how the memory monitor works, I leave a possible sample here. the memory monitor may be required to comply with arbitary length memory content
 	if err := p.acc.Grow(ctx, int64(datum.Size())); err != nil {
 		return err
 	}
@@ -2022,7 +2029,8 @@ func (p *paillierSumAggregate) Result() (tree.Datum, error) {
 // Close allows the aggregate to release the memory it requested during
 // operation.
 func (p *paillierSumAggregate) Close(ctx context.Context) { 
-	p.acc.Close(ctx)
+	//uncomment this line in case memory management is needed
+	//p.acc.Close(ctx)
 }
 
 // Size is part of the tree.AggregateFunc interface.
